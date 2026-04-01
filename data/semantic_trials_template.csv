@@ -1,0 +1,3 @@
+TrialID,PrimeType,PrimeText,PrimeAudioFile,TargetWord,DistractorWord,Condition
+1,word,example_prime_word,,target_option,foil_option,related
+2,audio,,example_prime_audio.wav,target_option,foil_option,unrelated
