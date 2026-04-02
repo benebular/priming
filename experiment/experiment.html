@@ -13,8 +13,6 @@
   .btn-primary:disabled { background:#a0aec0; color:#e2e8f0; cursor:not-allowed; }
   .btn-secondary { background:#ccc; color:black; }
   
-  /* Play button styling for trials */
-  #playBtn { display:block; margin:0 auto 20px; padding:14px 32px; font-size:18px; font-weight:600; }
   .hidden { display:none; }
   .progress { height:8px; background:#eee; border-radius:4px; margin:10px 0; overflow:hidden; }
   .progress > div { height:100%; background:#007acc; width:0; transition:width .2s ease; }
@@ -35,17 +33,24 @@
     background:#fafafa;
     cursor:pointer;
   }
-  .choice-btn:disabled { opacity:0.6; cursor:not-allowed; }
+  .choice-btn:disabled { cursor:not-allowed; }
   .choice-btn { display:block; }
   .image-container img { cursor:pointer; transition:transform 0.1s, box-shadow 0.1s; }
   .image-container img:hover { transform:scale(1.05); box-shadow:0 4px 12px rgba(0,0,0,0.2); }
   .image-container img:active { transform:scale(0.98); }
   .meta { margin-top:20px; color:#555; font-size:13px; text-align:center; }
   #trialStatus { font-size:32px; font-weight:600; color:#333; margin-top:24px; }
+  #taskQuestion {
+    text-align:center;
+    font-size:22px;
+    font-weight:600;
+    margin:8px 0 14px;
+    color:#1f2937;
+  }
   #primeDisplay {
     margin:20px auto 10px;
     max-width:700px;
-    min-height:80px;
+    min-height:90px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -53,8 +58,8 @@
     border:2px dashed #cdd7e1;
     border-radius:12px;
     background:#fbfdff;
-    padding:20px;
-    font-size:32px;
+    padding:24px;
+    font-size:44px;
     font-weight:700;
     color:#1f2937;
   }
@@ -111,8 +116,10 @@
 <!-- Instructions -->
 <div class="card hidden" id="screen-instructions">
   <h1>Instructions</h1>
-  <p>Welcome to the experiment. On each trial, you will first see a prime that is either a written word or an audio file. Then you will choose between two written word options. Select the option that best matches the task prompt for your study design. Please respond as accurately and quickly as you can.</p>
-  <p>If the prime is audio, you can press <strong>spacebar</strong> or click <strong>Play Audio</strong>. Use <strong>F</strong> for the left option and <strong>J</strong> for the right option, or click the button directly.</p>
+  <div style="max-width:760px; margin:0 auto; text-align:left; font-size:18px; line-height:1.6; color:#1f2937;">
+    <p>In this task, you will be identifying whether or not the word you see on screen is a word in English or French. You will not be told ahead of time if the word will be in French or English. Do your best to answer if it is a word regardless of the language.</p>
+    <p>you will be presented with Yes or No options under the word to answer this question. During each trial, you should focus on the center of the screen and read or listen to all words presented before making a decision about the final word.</p>
+  </div>
   <br>
   <button class="btn btn-primary" id="instructionsNextBtn">Continue</button>
 </div>
@@ -121,21 +128,16 @@
 <div class="card hidden" id="screen-trials">
   <div class="progress"><div id="progressBar"></div></div>
   <h1 id="trialTitle">Trial</h1>
-  <p>
-    A prime (written word or audio) appears first. Then choose one of the two written options using <strong>F</strong> (left), <strong>J</strong> (right), or mouse click.
-  </p>
+  <p id="taskQuestion">is this a word?</p>
 
   <div id="primeDisplay">Waiting to start...</div>
 
-  <button class="btn btn-primary" id="playBtn">Play Audio</button>
   <audio id="player" preload="auto"></audio>
 
-  <div class="choices" style="margin-top:14px;">
-    <button class="choice-btn" id="leftBtn" disabled></button>
-    <button class="choice-btn" id="rightBtn" disabled></button>
+  <div class="choices hidden" id="responseChoices" style="margin-top:14px;">
+    <button class="choice-btn" id="leftBtn" disabled>No</button>
+    <button class="choice-btn" id="rightBtn" disabled>Yes</button>
   </div>
-
-  <div class="meta" id="trialStatus">Waiting to start…</div>
 </div>
 
 <!-- Finish -->
@@ -164,7 +166,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxblhxJ34A7WfooWQBdK
 /** Repo structure:
  *  - This file is /priming/experiment/experiment.html
  *  - Prime audio is /priming/data/audio/
- *  - Trials CSV is /priming/data/semantic_trials.csv (recommended)
+ *  - Trials CSV is /priming/data/trials.csv
  *  - Attention check audio is /priming/experiment/audio_check/
  */
 const CONFIG = {
@@ -172,7 +174,7 @@ const CONFIG = {
   audioSuffix: ".wav",
   // Use relative path for local testing with Live Server
   // For GitHub Pages, replace with your repository raw CSV URL
-  trialsUrl: "../data/semantic_trials.csv",
+  trialsUrl: "../data/trials.csv",
   attnBase: "./audio_check",           // inside /experiment/audio_check/
   attnFileNames: [
     "alice_b.wav", "bean_b.wav", "beaten_t_b.wav", "bun_b.wav",
@@ -181,18 +183,21 @@ const CONFIG = {
     "jaunt_t_b.wav", "keen_b.wav", "motley_t_b.wav", "ron_b.wav",
     "sane_b.wav", "seller_b.wav", "tin_b.wav", "tint_t_b.wav", "whinny_b.wav"
   ],
-  attentionEveryNTrials: 0,
+  attentionEveryNTrials: 24,
   completionCode: "CJY9T9NA",
   prolificReturnUrl: "https://app.prolific.com/submissions/complete?cc=CJY9T9NA",
 };
 
 /** Trials: Loaded from CSV
- *  Recommended columns:
- *  - PrimeType: "audio" or "word"
- *  - PrimeText: used when PrimeType="word"
- *  - PrimeAudioFile: used when PrimeType="audio" (filename under CONFIG.audioBase)
- *  - TargetWord: correct option text
- *  - DistractorWord: foil option text
+ *  Expected columns from /data/trials.csv:
+ *  - Trial
+ *  - Prime
+ *  - Target
+ *  - Prime Modality (word|audio)
+ *  - Condition
+ *  - Prime Language
+ *  - Target Language
+ *  - Trial Type (related|unrelated)
  *  Optional columns are carried through to output rows.
  */
 let TRIALS = [];
@@ -229,10 +234,25 @@ function hide(id){ document.getElementById(id).classList.add("hidden"); }
 
 function currentTrial(){ return TRIALS[State.trialIndex]; }
 function resolveAudioUrl(trial){
-  // allow either prime_audio_file/audio_file or explicit URL
-  if(trial.prime_audio_file) return `${CONFIG.audioBase}/${trial.prime_audio_file}`;
-  if(trial.audio_file) return `${CONFIG.audioBase}/${trial.audio_file}`;
+  if(trial.prime_audio_file) return `${CONFIG.audioBase}/${encodeURIComponent(trial.prime_audio_file)}`;
   return trial.audio_url || "";
+}
+
+function sleep(ms){
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function waitForAudioEnd(audioEl){
+  return new Promise((resolve, reject) => {
+    const onEnded = () => { cleanup(); resolve(); };
+    const onError = () => { cleanup(); reject(new Error("Audio playback failed")); };
+    const cleanup = () => {
+      audioEl.removeEventListener("ended", onEnded);
+      audioEl.removeEventListener("error", onError);
+    };
+    audioEl.addEventListener("ended", onEnded);
+    audioEl.addEventListener("error", onError);
+  });
 }
 
 /* ===========================
@@ -254,14 +274,14 @@ function parseCSV(text){
     return -1;
   }
 
-  const primeTypeIdx = findColumn(["PrimeType", "prime_type"]);
-  const primeTextIdx = findColumn(["PrimeText", "prime_text", "PrimeWord"]);
-  const primeAudioIdx = findColumn(["PrimeAudioFile", "prime_audio_file", "TargetWordAudioFile"]);
-  const targetWordIdx = findColumn(["TargetWord", "target_word", "TargetDisplay"]);
-  const distractorWordIdx = findColumn(["DistractorWord", "distractor_word", "DistractorDisplay"]);
+  const trialIdIdx = findColumn(["Trial", "trial", "trial_id"]);
+  const primeIdx = findColumn(["Prime", "prime", "PrimeWord", "prime_word"]);
+  const targetIdx = findColumn(["Target", "target", "TargetWord", "target_word"]);
+  const primeModalityIdx = findColumn(["Prime Modality", "PrimeModality", "prime_modality", "PrimeType"]);
+  const trialTypeIdx = findColumn(["Trial Type", "TrialType", "trial_type"]);
 
-  if(primeTypeIdx === -1 || targetWordIdx === -1 || distractorWordIdx === -1){
-    console.error("CSV missing required columns. Need PrimeType, TargetWord, DistractorWord.");
+  if(primeIdx === -1 || targetIdx === -1 || primeModalityIdx === -1 || trialTypeIdx === -1){
+    console.error("CSV missing required columns. Need Prime, Target, Prime Modality, Trial Type.");
     return [];
   }
   
@@ -272,38 +292,32 @@ function parseCSV(text){
     if(!line) continue; // skip empty lines
     
     const cells = line.split(',').map(c => c.trim());
-    const rawPrimeType = (cells[primeTypeIdx] || "").toLowerCase();
-    const primeType = rawPrimeType === "audio" ? "audio" : "word";
-    const primeText = primeTextIdx !== -1 ? (cells[primeTextIdx] || "") : "";
-    const primeAudioFile = primeAudioIdx !== -1 ? (cells[primeAudioIdx] || "") : "";
-    const targetWord = cells[targetWordIdx] || "";
-    const distractorWord = cells[distractorWordIdx] || "";
+    const primeText = cells[primeIdx] || "";
+    const targetWord = cells[targetIdx] || "";
+    const primeType = ((cells[primeModalityIdx] || "word").toLowerCase() === "audio") ? "audio" : "word";
+    const trialType = (cells[trialTypeIdx] || "").toLowerCase();
+    const correctResponse = trialType === "related" ? "yes" : "no";
 
-    if(!targetWord || !distractorWord) continue;
-    if(primeType === "audio" && !primeAudioFile) continue;
-    if(primeType === "word" && !primeText) continue;
-    
-    // Randomly assign target/distractor to left/right
-    const targetLeft = randomBoolean();
+    if(!primeText || !targetWord) continue;
+
+    const primeAudioFile = `${primeText}.wav`;
     
     // Capture all other columns as custom data
     const customData = {};
     for(let j = 0; j < headers.length; j++){
-      if(j !== primeTypeIdx && j !== primeTextIdx && j !== primeAudioIdx && j !== targetWordIdx && j !== distractorWordIdx){
+      if(j !== trialIdIdx && j !== primeIdx && j !== targetIdx && j !== primeModalityIdx && j !== trialTypeIdx){
         customData[headers[j]] = cells[j] || '';
       }
     }
     
     const trial = {
-      trial_id: i,
+      trial_id: trialIdIdx !== -1 ? (cells[trialIdIdx] || i) : i,
       prime_type: primeType,
       prime_text: primeText,
       prime_audio_file: primeAudioFile,
       target_word: targetWord,
-      distractor_word: distractorWord,
-      target_side: targetLeft ? "left" : "right",
-      left_word: targetLeft ? targetWord : distractorWord,
-      right_word: targetLeft ? distractorWord : targetWord,
+      trial_type: trialType,
+      correct_response: correctResponse,
       ...customData  // Spread custom columns into trial object
     };
     
@@ -475,12 +489,15 @@ function showInstructions(){
 const screenTrials = document.getElementById("screen-trials");
 const progressBar = document.getElementById("progressBar");
 const trialTitle  = document.getElementById("trialTitle");
+const taskQuestion = document.getElementById("taskQuestion");
 const primeDisplay = document.getElementById("primeDisplay");
 const player      = document.getElementById("player");
-const playBtn     = document.getElementById("playBtn");
+const responseChoices = document.getElementById("responseChoices");
 const leftBtn     = document.getElementById("leftBtn");
 const rightBtn    = document.getElementById("rightBtn");
-const trialStatus = document.getElementById("trialStatus");
+let trialRenderToken = 0;
+let currentLeftResponse = "no";
+let currentRightResponse = "yes";
 
 function startTrials(){
   // optional: shuffle TRIALS once per participant
@@ -496,6 +513,20 @@ function setChoiceEnabled(enabled){
   rightBtn.disabled = !enabled;
 }
 
+function setChoiceVisible(visible){
+  if(visible) responseChoices.classList.remove("hidden");
+  else responseChoices.classList.add("hidden");
+}
+
+function updateResponseMappingForTrial(){
+  const blockIndex = Math.floor(State.trialIndex / CONFIG.attentionEveryNTrials);
+  const swapped = (blockIndex % 2) === 1;
+  currentLeftResponse = swapped ? "yes" : "no";
+  currentRightResponse = swapped ? "no" : "yes";
+  leftBtn.textContent = currentLeftResponse === "yes" ? "Yes" : "No";
+  rightBtn.textContent = currentRightResponse === "yes" ? "Yes" : "No";
+}
+
 function updateProgress(){
   const total = TRIALS.length;
   const done = State.trialIndex;
@@ -507,6 +538,8 @@ function loadTrial(){
   const t = currentTrial();
   if(!t){ finishStudy(); return; }
 
+  const thisToken = ++trialRenderToken;
+
   updateProgress();
   State.audioOffsetTs = null;
   State.awaitingChoice = false;
@@ -514,54 +547,49 @@ function loadTrial(){
   player.src = resolveAudioUrl(t);
   player.currentTime = 0;
 
-  leftBtn.textContent  = t.left_word || "Left option";
-  rightBtn.textContent = t.right_word || "Right option";
+  updateResponseMappingForTrial();
 
+  setChoiceVisible(false);
   setChoiceEnabled(false);
 
-  if(t.prime_type === "audio"){
-    primeDisplay.textContent = "Audio prime";
-    playBtn.disabled = false;
-    playBtn.classList.remove("hidden");
-    playBtn.textContent = "Play Audio";
-    trialStatus.textContent = "Press space or click Play to hear the prime.";
-  } else {
-    primeDisplay.textContent = t.prime_text || "";
-    playBtn.classList.add("hidden");
-    playBtn.disabled = true;
-    State.audioOffsetTs = nowMs();
-    State.awaitingChoice = true;
-    setChoiceEnabled(true);
-    trialStatus.textContent = "Select the best matching option (F/J or click).";
-  }
+  runTimedTrialSequence(t, thisToken);
 }
 
-playBtn.onclick = async () => {
-  playBtn.disabled = true;
-  playBtn.textContent = "Playing...";
-  trialStatus.textContent = "Listening…";
+async function runTimedTrialSequence(trial, token){
+  primeDisplay.textContent = "+";
+  await sleep(300);
+  if(token !== trialRenderToken) return;
 
-  State.audioOffsetTs = null;
-  State.awaitingChoice = false;
-  setChoiceEnabled(false);
-
-  try {
-    await player.play();
-  } catch (e) {
-    console.error(e);
-    alert("Unable to start audio playback. Please check your browser permissions.");
-    playBtn.disabled = false;
-    playBtn.textContent = "Play Audio";
-    trialStatus.textContent = "Click Play to listen.";
+  if(trial.prime_type === "audio"){
+    primeDisplay.textContent = "🔊";
+    try {
+      player.currentTime = 0;
+      await player.play();
+      await waitForAudioEnd(player);
+    } catch (e) {
+      console.error(e);
+      alert("Unable to play prime audio. Please check browser permissions.");
+      return;
+    }
+  } else {
+    primeDisplay.textContent = trial.prime_text;
+    await sleep(100);
   }
-};
+  if(token !== trialRenderToken) return;
 
-player.onended = () => {
-  State.audioOffsetTs = nowMs();      // RT starts HERE (audio offset)
+  primeDisplay.textContent = "";
+  await sleep(400);
+  if(token !== trialRenderToken) return;
+
+  primeDisplay.textContent = trial.target_word;
+  State.audioOffsetTs = nowMs();
+  await sleep(100);
+  if(token !== trialRenderToken) return;
+
   State.awaitingChoice = true;
+  setChoiceVisible(true);
   setChoiceEnabled(true);
-  trialStatus.textContent = "Select the best matching option (F/J or click).";
-};
+}
 
 function recordChoice(choiceSide){
   if(!State.awaitingChoice) return;
@@ -570,8 +598,8 @@ function recordChoice(choiceSide){
   const clickTs = nowMs();
   const rt_ms = Math.round(clickTs - (State.audioOffsetTs ?? clickTs));
 
-  const choice_word = (choiceSide === "left") ? t.left_word : t.right_word;
-  const is_target = (choiceSide === t.target_side);
+  const response = (choiceSide === "left") ? currentLeftResponse : currentRightResponse;
+  const is_correct = response === (t.correct_response || "");
 
   const row = {
     participant_id: State.participantId,
@@ -584,13 +612,12 @@ function recordChoice(choiceSide){
     prime_audio_file: t.prime_audio_file ?? "",
     audio_url: t.prime_type === "audio" ? player.src : "",
     target_word: t.target_word ?? "",
-    distractor_word: t.distractor_word ?? "",
-    target_side: t.target_side ?? "",
-    left_word: t.left_word ?? "",
-    right_word: t.right_word ?? "",
-    choice: choiceSide,
-    choice_word: choice_word ?? "",
-    is_correct: is_target ? "yes" : "no",
+    trial_type: t.trial_type ?? "",
+    correct_response: t.correct_response ?? "",
+    left_response: currentLeftResponse,
+    right_response: currentRightResponse,
+    choice: response,
+    is_correct: is_correct ? "yes" : "no",
     reaction_time_ms: rt_ms,
     headphone_type: State.headphoneType,
     timestamp_iso: new Date().toISOString(),
@@ -611,10 +638,8 @@ function recordChoice(choiceSide){
 
   // Lock choices
   State.awaitingChoice = false;
+  setChoiceVisible(false);
   setChoiceEnabled(false);
-
-  const targetIndicator = is_target ? "✓ Correct" : "✗ Incorrect";
-  trialStatus.textContent = targetIndicator;
 
   // Attention check every N trials (optional)
   const nextIndex = State.trialIndex + 1;
@@ -638,19 +663,8 @@ function recordChoice(choiceSide){
 leftBtn.onclick  = () => recordChoice("left");
 rightBtn.onclick = () => recordChoice("right");
 
-// Keyboard shortcuts (F/J for choices, Spacebar for play)
+// Keyboard shortcuts (F/J for No/Yes)
 document.addEventListener("keydown", (e) => {
-  // Spacebar to play audio
-  if(e.code === "Space" && !screenTrials.classList.contains("hidden")){
-    e.preventDefault();
-    const t = currentTrial();
-    if(t && t.prime_type === "audio" && !playBtn.disabled){
-      playBtn.click();
-    }
-    return;
-  }
-  
-  // F/J for choices
   if(screenTrials.classList.contains("hidden")) return;
   if(!State.awaitingChoice) return;
   const k = e.key.toLowerCase();

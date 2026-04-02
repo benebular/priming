@@ -1,5 +1,0 @@
-TrialID,PrimeType,PrimeText,PrimeAudioFile,TargetWord,DistractorWord,Condition
-1,word,doctor,,nurse,bread,related
-2,audio,,prime_002.wav,table,cloud,unrelated
-3,word,river,,water,window,related
-4,audio,,prime_004.wav,cat,stone,unrelated
