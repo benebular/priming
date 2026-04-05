@@ -20,6 +20,11 @@
   .question-block { margin:20px 0; padding:12px; background:#f9f9f9; border-radius:6px; border:1px solid #ddd; }
   .question-block p { margin:0 0 8px 0; font-weight:bold; }
   input[type="text"] { width:100%; padding:8px; font-size:14px; border:1px solid #ccc; border-radius:6px; }
+  .radio-group { display:flex; gap:18px; flex-wrap:wrap; margin-top:8px; }
+  .radio-group label { display:flex; align-items:center; gap:6px; font-weight:normal; }
+  .scale-row { display:flex; align-items:center; gap:12px; margin-top:8px; }
+  .scale-row input[type="range"] { flex:1; }
+  .scale-value { min-width:44px; font-weight:700; text-align:right; }
 
   /* Two-choice layout */
   .choices { display:flex; gap:14px; margin-top:14px; }
@@ -92,10 +97,6 @@
   <label><input type="checkbox" id="consentCheck"> I consent to participate</label>
   <br><br>
 
-  <label for="prolificId"><strong>Please enter your Prolific ID:</strong></label><br>
-  <input type="text" id="prolificId" placeholder="e.g., 60a1b2c3d4e5f6g7h8i9" style="width:100%; padding:8px; font-size:14px; margin-top:6px;">
-  <br><br>
-
   <button class="btn btn-primary" id="consentBtn" disabled>Continue</button>
 </div>
 
@@ -118,7 +119,7 @@
   <h1>Instructions</h1>
   <div style="max-width:760px; margin:0 auto; text-align:left; font-size:18px; line-height:1.6; color:#1f2937;">
     <p>In this task, you will be identifying whether or not the word you see on screen is a word in English or French. You will not be told ahead of time if the word will be in French or English. Do your best to answer if it is a word regardless of the language.</p>
-    <p>you will be presented with Yes or No options under the word to answer this question. During each trial, you should focus on the center of the screen and read or listen to all words presented before making a decision about the final word.</p>
+    <p>You will be presented with French and English options under the word to answer this question. During each trial, you should focus on the center of the screen and read or listen to all words presented before making a decision about the final word.</p>
   </div>
   <br>
   <button class="btn btn-primary" id="instructionsNextBtn">Continue</button>
@@ -128,15 +129,14 @@
 <div class="card hidden" id="screen-trials">
   <div class="progress"><div id="progressBar"></div></div>
   <h1 id="trialTitle">Trial</h1>
-  <p id="taskQuestion">is this a word?</p>
 
   <div id="primeDisplay">Waiting to start...</div>
 
   <audio id="player" preload="auto"></audio>
 
   <div class="choices hidden" id="responseChoices" style="margin-top:14px;">
-    <button class="choice-btn" id="leftBtn" disabled>No</button>
-    <button class="choice-btn" id="rightBtn" disabled>Yes</button>
+    <button class="choice-btn" id="leftBtn" disabled>French</button>
+    <button class="choice-btn" id="rightBtn" disabled>English</button>
   </div>
 </div>
 
@@ -144,15 +144,67 @@
 <div class="card hidden" id="screen-finish">
   <h1>All Done!</h1>
   <p>Thank you for participating in this study.</p>
-  <p><strong>Your participation code:</strong> <code id="completionCode">CJUVEL1D</code></p>
-  <p>
-    Please click the link below to complete your submission on Prolific:
-  </p>
-  <p>
-    <a id="prolificReturnLink" href="https://app.prolific.com/submissions/complete?cc=CJUVEL1D" target="_blank" style="font-size:16px; color:#007acc; text-decoration:underline;">
-      ➤ Click here to return to Prolific and submit your study
-    </a>
-  </p>
+  <div id="demographicsPrompt">
+    <p>Please answer the following questions before finishing:</p>
+    <div class="question-block">
+      <label for="ageResponse"><strong>What is your age?</strong></label>
+      <input type="text" id="ageResponse" placeholder="Your answer">
+    </div>
+    <div class="question-block">
+      <label for="genderResponse"><strong>What is your gender?</strong></label>
+      <input type="text" id="genderResponse" placeholder="Your answer">
+    </div>
+    <div class="question-block">
+      <label for="countryResponse"><strong>What is your country of residence?</strong></label>
+      <input type="text" id="countryResponse" placeholder="Your answer">
+    </div>
+    <button class="btn btn-primary" id="demographicsSubmitBtn">Submit responses</button>
+  </div>
+  <div id="languagePrompt" class="hidden">
+    <p>Please answer a few language background questions:</p>
+    <div class="question-block">
+      <p><strong>Do you consider yourself to be bilingual in English and French?</strong></p>
+      <div class="radio-group" id="bilingualGroup">
+        <label><input type="radio" name="bilingualResponse" value="Yes"> Yes</label>
+        <label><input type="radio" name="bilingualResponse" value="No"> No</label>
+        <label><input type="radio" name="bilingualResponse" value="Somewhat"> Somewhat</label>
+      </div>
+    </div>
+    <div class="question-block">
+      <label for="frenchUseRange"><strong>What percentage of your week do you spend using French?</strong></label>
+      <div class="scale-row">
+        <span>0</span>
+        <input type="range" id="frenchUseRange" min="0" max="100" step="1" value="0">
+        <span class="scale-value" id="frenchUseValue">0</span>
+        <span>100</span>
+      </div>
+    </div>
+    <div class="question-block">
+      <label for="englishUseRange"><strong>What percentage of your week do you spend using English?</strong></label>
+      <div class="scale-row">
+        <span>0</span>
+        <input type="range" id="englishUseRange" min="0" max="100" step="1" value="0">
+        <span class="scale-value" id="englishUseValue">0</span>
+        <span>100</span>
+      </div>
+    </div>
+    <div class="question-block">
+      <label for="otherLanguagesResponse"><strong>What other language do you speak? Please list them, and indicate the percentage you use them per week.</strong></label>
+      <input type="text" id="otherLanguagesResponse" placeholder="Your answer">
+    </div>
+    <button class="btn btn-primary" id="languageSubmitBtn">Submit responses</button>
+  </div>
+  <div id="completionPrompt" class="hidden">
+    <p><strong>Your participation code:</strong> <code id="completionCode">CJUVEL1D</code></p>
+    <p>
+      Please click the link below to complete your submission on Prolific:
+    </p>
+    <p>
+      <a id="prolificReturnLink" href="https://app.prolific.com/submissions/complete?cc=CJUVEL1D" target="_blank" style="font-size:16px; color:#007acc; text-decoration:underline;">
+        ➤ Click here to return to Prolific and submit your study
+      </a>
+    </p>
+  </div>
 </div>
 
 <script>
@@ -161,7 +213,7 @@
 =========================== */
 
 /** Google Apps Script endpoint (same as your template) */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxblhxJ34A7WfooWQBdKIdzPLMpyPfbOWnHmNdGsbWXa72ZxqYIR-2gaMa8jV7jnRcebw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw8ASKh0Vz16tCZqxJstnWiC9cd5r_Da1nT-56oK3eSQIbVgIodTd9cx1dyFJwU9ec/exec";
 
 /** Repo structure:
  *  - This file is /priming/experiment/experiment.html
@@ -206,13 +258,25 @@ let TRIALS = [];
    STATE
 =========================== */
 const State = {
-  participantId: null,      // Prolific ID
+  participantId: null,
+  sessionId: `session-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
   headphoneType: "",
   trialIndex: 0,
   audioOffsetTs: null,      // performance.now() at audio offset
   awaitingChoice: false,
   attnQueue: [],
   attnAnswers: [],
+  demographics: {
+    age: "",
+    gender: "",
+    country: "",
+  },
+  languageBackground: {
+    bilingual: "",
+    frenchUse: "",
+    englishUse: "",
+    otherLanguages: "",
+  },
   rowsLocal: [],            // optional local copy
 };
 
@@ -222,6 +286,14 @@ const State = {
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function nowMs(){ return performance.now(); }
 function randomBoolean(){ return Math.random() > 0.5; }
+function generateParticipantId(){ return String(Math.floor(100000 + Math.random() * 900000)); }
+
+function normalizeLanguage(value){
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if(normalized === "fr" || normalized === "french") return "french";
+  if(normalized === "en" || normalized === "english") return "english";
+  return normalized;
+}
 
 function sendToGoogleSheet(obj){
   const fd = new FormData();
@@ -279,9 +351,10 @@ function parseCSV(text){
   const targetIdx = findColumn(["Target", "target", "TargetWord", "target_word"]);
   const primeModalityIdx = findColumn(["Prime Modality", "PrimeModality", "prime_modality", "PrimeType"]);
   const trialTypeIdx = findColumn(["Trial Type", "TrialType", "trial_type"]);
+  const targetLanguageIdx = findColumn(["Target Language", "TargetLanguage", "target_language"]);
 
-  if(primeIdx === -1 || targetIdx === -1 || primeModalityIdx === -1 || trialTypeIdx === -1){
-    console.error("CSV missing required columns. Need Prime, Target, Prime Modality, Trial Type.");
+  if(primeIdx === -1 || targetIdx === -1 || primeModalityIdx === -1 || trialTypeIdx === -1 || targetLanguageIdx === -1){
+    console.error("CSV missing required columns. Need Prime, Target, Prime Modality, Trial Type, Target Language.");
     return [];
   }
   
@@ -296,7 +369,8 @@ function parseCSV(text){
     const targetWord = cells[targetIdx] || "";
     const primeType = ((cells[primeModalityIdx] || "word").toLowerCase() === "audio") ? "audio" : "word";
     const trialType = (cells[trialTypeIdx] || "").toLowerCase();
-    const correctResponse = trialType === "related" ? "yes" : "no";
+    const targetLanguage = normalizeLanguage(cells[targetLanguageIdx] || "");
+    const correctResponse = targetLanguage;
 
     if(!primeText || !targetWord) continue;
 
@@ -305,7 +379,7 @@ function parseCSV(text){
     // Capture all other columns as custom data
     const customData = {};
     for(let j = 0; j < headers.length; j++){
-      if(j !== trialIdIdx && j !== primeIdx && j !== targetIdx && j !== primeModalityIdx && j !== trialTypeIdx){
+      if(j !== trialIdIdx && j !== primeIdx && j !== targetIdx && j !== primeModalityIdx && j !== trialTypeIdx && j !== targetLanguageIdx){
         customData[headers[j]] = cells[j] || '';
       }
     }
@@ -318,6 +392,7 @@ function parseCSV(text){
       target_word: targetWord,
       trial_type: trialType,
       correct_response: correctResponse,
+      target_language: targetLanguage,
       ...customData  // Spread custom columns into trial object
     };
     
@@ -353,35 +428,15 @@ async function loadTrialsFromCSV(){
   CONSENT
 =========================== */
 const consentCheck = document.getElementById('consentCheck');
-const prolificInput = document.getElementById('prolificId');
 const consentBtn = document.getElementById('consentBtn');
 
 function updateConsentContinue(){
-  consentBtn.disabled = !(consentCheck.checked && prolificInput.value.trim().length > 0);
+  consentBtn.disabled = !consentCheck.checked;
 }
 consentCheck.onchange = updateConsentContinue;
-prolificInput.oninput  = updateConsentContinue;
 
 consentBtn.onclick = () => {
-  const rawId = prolificInput.value || "";
-  const idVal = rawId.trim();
-  if(!idVal){ alert("Please enter your Prolific ID before continuing."); return; }
-  State.participantId = idVal;
-
-  // normalize for testing shortcuts (case-insensitive)
-  const idNorm = idVal.toLowerCase();
-
-  // Testing shortcut
-  if(idNorm === "bubbleboy"){
-    // Skip to task
-    loadTrialsFromCSV().then(success => {
-      if(success){
-        hide("screen-consent");
-        startTrials();
-      }
-    });
-    return;
-  }
+  State.participantId = generateParticipantId();
 
   // Load trials from CSV before proceeding
   consentBtn.disabled = true;
@@ -453,7 +508,6 @@ function showAudioAttentionCheck(onContinue){
     // optionally send attention check row immediately
     sendToGoogleSheet({
       participant_id: State.participantId,
-      prolific_id: State.participantId,
       block: "AttentionCheck",
       attention_index: State.attnAnswers.length,
       attention_audio: audio.src,
@@ -489,15 +543,14 @@ function showInstructions(){
 const screenTrials = document.getElementById("screen-trials");
 const progressBar = document.getElementById("progressBar");
 const trialTitle  = document.getElementById("trialTitle");
-const taskQuestion = document.getElementById("taskQuestion");
 const primeDisplay = document.getElementById("primeDisplay");
 const player      = document.getElementById("player");
 const responseChoices = document.getElementById("responseChoices");
 const leftBtn     = document.getElementById("leftBtn");
 const rightBtn    = document.getElementById("rightBtn");
 let trialRenderToken = 0;
-let currentLeftResponse = "no";
-let currentRightResponse = "yes";
+let currentLeftResponse = "french";
+let currentRightResponse = "english";
 
 function startTrials(){
   // optional: shuffle TRIALS once per participant
@@ -521,10 +574,10 @@ function setChoiceVisible(visible){
 function updateResponseMappingForTrial(){
   const blockIndex = Math.floor(State.trialIndex / CONFIG.attentionEveryNTrials);
   const swapped = (blockIndex % 2) === 1;
-  currentLeftResponse = swapped ? "yes" : "no";
-  currentRightResponse = swapped ? "no" : "yes";
-  leftBtn.textContent = currentLeftResponse === "yes" ? "Yes" : "No";
-  rightBtn.textContent = currentRightResponse === "yes" ? "Yes" : "No";
+  currentLeftResponse = swapped ? "english" : "french";
+  currentRightResponse = swapped ? "french" : "english";
+  leftBtn.textContent = currentLeftResponse === "french" ? "French" : "English";
+  rightBtn.textContent = currentRightResponse === "french" ? "French" : "English";
 }
 
 function updateProgress(){
@@ -557,7 +610,7 @@ function loadTrial(){
 
 async function runTimedTrialSequence(trial, token){
   primeDisplay.textContent = "+";
-  await sleep(300);
+  await sleep(600);
   if(token !== trialRenderToken) return;
 
   if(trial.prime_type === "audio"){
@@ -603,7 +656,6 @@ function recordChoice(choiceSide){
 
   const row = {
     participant_id: State.participantId,
-    prolific_id: State.participantId,
     block: "Trials",
     trial_index: State.trialIndex + 1,
     trial_id: t.trial_id ?? "",
@@ -640,6 +692,7 @@ function recordChoice(choiceSide){
   State.awaitingChoice = false;
   setChoiceVisible(false);
   setChoiceEnabled(false);
+  primeDisplay.textContent = "";
 
   // Attention check every N trials (optional)
   const nextIndex = State.trialIndex + 1;
@@ -654,16 +707,16 @@ function recordChoice(choiceSide){
         show("screen-trials");
         loadTrial();
       });
-    }, 1000);
+    }, 2000);
   } else {
-    setTimeout(loadTrial, 1000);
+    setTimeout(loadTrial, 2000);
   }
 }
 
 leftBtn.onclick  = () => recordChoice("left");
 rightBtn.onclick = () => recordChoice("right");
 
-// Keyboard shortcuts (F/J for No/Yes)
+// Keyboard shortcuts (F/J for left/right choice)
 document.addEventListener("keydown", (e) => {
   if(screenTrials.classList.contains("hidden")) return;
   if(!State.awaitingChoice) return;
@@ -678,18 +731,103 @@ document.addEventListener("keydown", (e) => {
 function finishStudy(){
   hide("screen-trials");
 
-  const out = {
-    participant_id: State.participantId,
-    prolific_id: State.participantId,
-    block: "Final",
-    headphone_type: State.headphoneType || "",
-    completion_code: CONFIG.completionCode,
-    timestamp_iso: new Date().toISOString(),
+  document.getElementById("demographicsPrompt").classList.remove("hidden");
+  document.getElementById("languagePrompt").classList.add("hidden");
+  document.getElementById("completionPrompt").classList.add("hidden");
+
+  const demographicsSubmitBtn = document.getElementById("demographicsSubmitBtn");
+  const ageInput = document.getElementById("ageResponse");
+  const genderInput = document.getElementById("genderResponse");
+  const countryInput = document.getElementById("countryResponse");
+
+  ageInput.value = "";
+  genderInput.value = "";
+  countryInput.value = "";
+
+  demographicsSubmitBtn.onclick = () => {
+    const age = ageInput.value.trim();
+    const gender = genderInput.value.trim();
+    const country = countryInput.value.trim();
+
+    if(!age || !gender || !country){
+      alert("Please answer all three demographic questions before submitting.");
+      return;
+    }
+
+    State.demographics = { age, gender, country };
+
+    document.getElementById("demographicsPrompt").classList.add("hidden");
+    document.getElementById("languagePrompt").classList.remove("hidden");
   };
-  for(let i=0;i<State.attnAnswers.length;i++){
-    out[`attention_check_${i+1}`] = State.attnAnswers[i] || "";
-  }
-  sendToGoogleSheet(out);
+
+  const frenchUseRange = document.getElementById("frenchUseRange");
+  const englishUseRange = document.getElementById("englishUseRange");
+  const frenchUseValue = document.getElementById("frenchUseValue");
+  const englishUseValue = document.getElementById("englishUseValue");
+  const languageSubmitBtn = document.getElementById("languageSubmitBtn");
+  const otherLanguagesInput = document.getElementById("otherLanguagesResponse");
+
+  frenchUseRange.value = "0";
+  englishUseRange.value = "0";
+  frenchUseValue.textContent = "0";
+  englishUseValue.textContent = "0";
+  otherLanguagesInput.value = "";
+
+  const updateScaleValues = () => {
+    frenchUseValue.textContent = frenchUseRange.value;
+    englishUseValue.textContent = englishUseRange.value;
+  };
+
+  frenchUseRange.oninput = updateScaleValues;
+  englishUseRange.oninput = updateScaleValues;
+
+  languageSubmitBtn.onclick = () => {
+    const bilingualChoice = document.querySelector('input[name="bilingualResponse"]:checked');
+    const frenchUse = frenchUseRange.value;
+    const englishUse = englishUseRange.value;
+    const otherLanguages = otherLanguagesInput.value.trim();
+
+    if(!bilingualChoice){
+      alert("Please answer the bilingual question before submitting.");
+      return;
+    }
+
+    if(otherLanguages.length === 0){
+      alert("Please list any other languages you speak before submitting.");
+      return;
+    }
+
+    State.languageBackground = {
+      bilingual: bilingualChoice.value,
+      frenchUse,
+      englishUse,
+      otherLanguages,
+    };
+
+    const out = {
+      participant_id: State.participantId,
+      block: "Final",
+      headphone_type: State.headphoneType || "",
+      completion_code: CONFIG.completionCode,
+      age: age,
+      gender: gender,
+      country_of_residence: country,
+      bilingual_english_french: bilingualChoice.value,
+      french_use_percent: frenchUse,
+      english_use_percent: englishUse,
+      other_languages: otherLanguages,
+      timestamp_iso: new Date().toISOString(),
+    };
+    for(let i=0;i<State.attnAnswers.length;i++){
+      out[`attention_check_${i+1}`] = State.attnAnswers[i] || "";
+    }
+    sendToGoogleSheet(out);
+
+    document.getElementById("demographicsPrompt").classList.add("hidden");
+    document.getElementById("languagePrompt").classList.add("hidden");
+    document.getElementById("completionPrompt").classList.remove("hidden");
+    show("screen-finish");
+  };
 
   show("screen-finish");
 }
