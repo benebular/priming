@@ -66,17 +66,18 @@
 <body>
 
 <div class="card" id="screen-splash">
-  <h1>Welcome to the experimnet</h1>
-  <p>This is Experiment 2. All primes in this task are visual words.</p>
+  <h1>Welcome to the experiment!</h1>
+  <p>You will be participating in a word selection task. Please advance to the next screen for instructions.</p>
   <button class="btn btn-primary" id="splashBtn">Continue</button>
 </div>
 
 <div class="card hidden" id="screen-instructions">
   <h1>Instructions</h1>
   <div style="max-width:760px; margin:0 auto; text-align:left; font-size:18px; line-height:1.6; color:#1f2937;">
-    <p>In this task, decide whether the target is a real word or a nonword.</p>
+    <p>In this task, you will be reading a string of words. You will then decide whether the final word is a real word or a nonword.</p>
     <p>Use <strong>F</strong> for <strong>Word</strong> and <strong>J</strong> for <strong>Nonword</strong>.</p>
     <p>You will complete a short practice round first, then the main task.</p>
+    <p>Do your best. For every trial, you will be given feedback on the correctness of your response.</p>
   </div>
   <br>
   <button class="btn btn-primary" id="instructionsNextBtn">Start Practice</button>
@@ -111,7 +112,7 @@
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw8ASKh0Vz16tCZqxJstnWiC9cd5r_Da1nT-56oK3eSQIbVgIodTd9cx1dyFJwU9ec/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyp7Yw1qGCIWrWLbcyAPVrTgNx10ggV8meJb3zqPhdVM5cqpCSd7hiCxF9flzhZs3E/exec";
 
 const CONFIG = {
   trialsUrl: "../data/trials2.csv",
