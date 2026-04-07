@@ -1,0 +1,5 @@
+#,prime,target,prime_type,target_type
+1,fruit,apple,related,word
+2,tennis,ocean,unrelated,word
+3,lamp,zitro,unrelated,nonword
+4,cloud,blenk,unrelated,nonword

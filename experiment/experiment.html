@@ -105,8 +105,8 @@
 <div class="card hidden" id="screen-instructions">
   <h1>Instructions</h1>
   <div style="max-width:760px; margin:0 auto; text-align:left; font-size:18px; line-height:1.6; color:#1f2937;">
-    <p>In this task, you will be identifying whether or not the word you see on screen is a word in English or French. You will not be told ahead of time if the word will be in French or English. Do your best to answer if it is a word regardless of the language.</p>
-    <p>You will be presented with French and English options under the word to answer this question. During each trial, you should focus on the center of the screen and read or listen to all words presented before making a decision about the final word.</p>
+    <p>In this task, you will be identifying whether or not the word you see on screen is a real word. The word may appear in French or English and you will not be told ahead of time if the word will be in French or English. Do your best to answer if it is a word regardless of the language.</p>
+    <p>You will be presented with "Word" and "Nonword" options under the word to answer this question. Responses will be taken via keyboard, with F for a "Word" and J for a "Nonword." During each trial, you should focus on the center of the screen and read or listen to all words presented before making a decision about the final word.</p>
   </div>
   <br>
   <button class="btn btn-primary" id="instructionsNextBtn">Continue</button>
@@ -151,7 +151,9 @@
 =========================== */
 
 /** Google Apps Script endpoint (same as your template) */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw8ASKh0Vz16tCZqxJstnWiC9cd5r_Da1nT-56oK3eSQIbVgIodTd9cx1dyFJwU9ec/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwILZ1cCZ0atPsez5mfmKRlRM7dOb03jYbKdmIgBnWLtZAQ8r6cD9r2VUPEx9swEPiJ/exec";
+const TARGET_SPREADSHEET_ID = "1bYZf29Zw_74UoQ1tZ4psvchdh-nOecD5_j8TSCGl1Mg";
+const TARGET_SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1bYZf29Zw_74UoQ1tZ4psvchdh-nOecD5_j8TSCGl1Mg/edit?gid=0#gid=0";
 
 /** Repo structure:
  *  - This file is /priming/experiment/experiment.html
@@ -239,9 +241,31 @@ function randomChoice(values){
 }
 
 function sendToGoogleSheet(obj){
-  const fd = new FormData();
-  for (const k in obj) fd.append(k, obj[k] ?? "");
-  fetch(SCRIPT_URL, { method:"POST", body:fd }).catch(err=>console.error("Sheet POST error:", err));
+  const payload = {
+    ...obj,
+    spreadsheet_id: TARGET_SPREADSHEET_ID,
+    spreadsheet_url: TARGET_SPREADSHEET_URL,
+    source_experiment: "experiment1",
+  };
+
+  const params = new URLSearchParams();
+  for(const [k, v] of Object.entries(payload)){
+    params.append(k, String(v ?? ""));
+  }
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+    body: params.toString(),
+    keepalive: true,
+  }).catch(err => {
+    console.error("Sheet POST error:", err);
+    if(navigator.sendBeacon){
+      const blob = new Blob([params.toString()], { type: "application/x-www-form-urlencoded;charset=UTF-8" });
+      navigator.sendBeacon(SCRIPT_URL, blob);
+    }
+  });
 }
 
 function show(id){ document.getElementById(id).classList.remove("hidden"); }
