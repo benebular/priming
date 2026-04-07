@@ -74,10 +74,10 @@
 <div class="card hidden" id="screen-instructions">
   <h1>Instructions</h1>
   <div style="max-width:760px; margin:0 auto; text-align:left; font-size:18px; line-height:1.6; color:#1f2937;">
-    <p>In this task, you will be reading a string of words. You will then decide whether the final word is a real word or a nonword.</p>
+    <p>In this task, you will be reading a string of letters. You will then decide whether the final word is a real word or a nonword.</p>
     <p>Use <strong>F</strong> for <strong>Word</strong> and <strong>J</strong> for <strong>Nonword</strong>.</p>
     <p>You will complete a short practice round first, then the main task.</p>
-    <p>Do your best. For every trial, you will be given feedback on the correctness of your response.</p>
+    <p>Do your best. You will receive feedback during practice only.</p>
   </div>
   <br>
   <button class="btn btn-primary" id="instructionsNextBtn">Start Practice</button>
@@ -402,8 +402,10 @@ async function recordChoice(side){
     timestamp_iso: new Date().toISOString(),
   });
 
-  showFeedback(isCorrect);
-  await sleep(CONFIG.feedbackMs);
+  if(State.phase === "practice"){
+    showFeedback(isCorrect);
+    await sleep(CONFIG.feedbackMs);
+  }
 
   primeDisplay.textContent = "";
   responseChoices.classList.add("hidden");
