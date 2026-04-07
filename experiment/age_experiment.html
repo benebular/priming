@@ -220,6 +220,20 @@ function parseMainTrials(csvText){
         });
       }
     }
+
+    if(wordTarget){
+      out.push({
+        trial_id: `${baseId}_word_target_repeated_prime`,
+        source_row_id: baseId,
+        prime_type: "word",
+        prime_text: wordTarget,
+        target_word: wordTarget,
+        correct_response: "word",
+        trial_type: "repeated_prime",
+        target_label: "word_target",
+        phase: "main",
+      });
+    }
   }
   return out;
 }
