@@ -12,7 +12,6 @@
   .btn-primary { background:#007acc; color:white; }
   .btn-primary:disabled { background:#a0aec0; color:#e2e8f0; cursor:not-allowed; }
   .btn-secondary { background:#ccc; color:black; }
-  
   .hidden { display:none; }
   .progress { height:8px; background:#eee; border-radius:4px; margin:10px 0; overflow:hidden; }
   .progress > div { height:100%; background:#007acc; width:0; transition:width .2s ease; }
@@ -25,21 +24,28 @@
   .scale-row { display:flex; align-items:center; gap:12px; margin-top:8px; }
   .scale-row input[type="range"] { flex:1; }
   .scale-value { min-width:44px; font-weight:700; text-align:right; }
-
-  /* Two-choice layout */
   .choices { display:flex; gap:14px; margin-top:14px; }
-  .choice-btn {
+  .choice-panel {
     flex:1;
     padding:18px 14px;
-    font-size:22px;
-    font-weight:700;
     border-radius:10px;
     border:1px solid #ddd;
     background:#fafafa;
-    cursor:pointer;
+    text-align:center;
+    user-select:none;
   }
-  .choice-btn:disabled { cursor:not-allowed; }
-  .choice-btn { display:block; }
+  .choice-key {
+    font-size:18px;
+    font-weight:700;
+    color:#475569;
+    letter-spacing:0.08em;
+  }
+  .choice-word {
+    margin-top:10px;
+    font-size:24px;
+    font-weight:700;
+    color:#111827;
+  }
   .image-container img { cursor:pointer; transition:transform 0.1s, box-shadow 0.1s; }
   .image-container img:hover { transform:scale(1.05); box-shadow:0 4px 12px rgba(0,0,0,0.2); }
   .image-container img:active { transform:scale(0.98); }
@@ -69,38 +75,20 @@
     color:#1f2937;
   }
   .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; border:1px solid #ddd; background:#f7f7f7; padding:2px 6px; border-radius:6px; }
-
-  /* Image pair display */
   .image-pair { display:flex; gap:20px; margin:20px 0; justify-content:center; align-items:flex-start; }
   .image-container { text-align:center; }
   .image-container img { max-width:200px; max-height:200px; border-radius:8px; border:2px solid #ddd; }
   .image-label { margin-top:8px; font-weight:bold; color:#333; }
-
 </style>
 </head>
 <body>
 
-<!-- Consent -->
-<div class="card" id="screen-consent">
-  <h1>Intro and Consent</h1>
-  <p>Thank you for participating! You will complete a semantic priming task using written words and audio prompts.</p>
-  <p><strong>Important:</strong> Please wear <strong>headphones</strong> for the entire experiment.</p>
-  <p>
-    Before starting, please read the
-    <!-- Repo structure: /pharylary/experiment/ -> ../consent/ -->
-    <a href="../consent/approved_consent_prolific.pdf" target="_blank" rel="noopener noreferrer">
-      Informed Consent Form
-    </a>
-    then check the box below once done.
-  </p>
-
-  <label><input type="checkbox" id="consentCheck"> I consent to participate</label>
-  <br><br>
-
-  <button class="btn btn-primary" id="consentBtn" disabled>Continue</button>
+<div class="card" id="screen-splash">
+  <h1>Welcome to the experimnet</h1>
+  <p>This study uses written words and audio prompts. Please wear headphones for the entire experiment.</p>
+  <button class="btn btn-primary" id="splashBtn">Continue</button>
 </div>
 
-<!-- Audio Attention Check -->
 <div class="card hidden" id="screen-audiocheck">
   <h1>Audio Check</h1>
   <button class="btn btn-primary" id="playAudioCheckBtn">Play Audio</button>
@@ -114,7 +102,6 @@
   <button class="btn btn-primary" id="audioCheckNextBtn" disabled>Continue</button>
 </div>
 
-<!-- Instructions -->
 <div class="card hidden" id="screen-instructions">
   <h1>Instructions</h1>
   <div style="max-width:760px; margin:0 auto; text-align:left; font-size:18px; line-height:1.6; color:#1f2937;">
@@ -125,85 +112,36 @@
   <button class="btn btn-primary" id="instructionsNextBtn">Continue</button>
 </div>
 
-<!-- Trials -->
 <div class="card hidden" id="screen-trials">
   <div class="progress"><div id="progressBar"></div></div>
   <h1 id="trialTitle">Trial</h1>
-
   <div id="primeDisplay">Waiting to start...</div>
-
   <audio id="player" preload="auto"></audio>
-
   <div class="choices hidden" id="responseChoices" style="margin-top:14px;">
-    <button class="choice-btn" id="leftBtn" disabled>French</button>
-    <button class="choice-btn" id="rightBtn" disabled>English</button>
+    <div class="choice-panel" id="leftChoice">
+      <div class="choice-key">F</div>
+      <div class="choice-word">Word</div>
+    </div>
+    <div class="choice-panel" id="rightChoice">
+      <div class="choice-key">J</div>
+      <div class="choice-word">Nonword</div>
+    </div>
   </div>
 </div>
 
-<!-- Finish -->
 <div class="card hidden" id="screen-finish">
   <h1>All Done!</h1>
   <p>Thank you for participating in this study.</p>
-  <div id="demographicsPrompt">
-    <p>Please answer the following questions before finishing:</p>
-    <div class="question-block">
-      <label for="ageResponse"><strong>What is your age?</strong></label>
-      <input type="text" id="ageResponse" placeholder="Your answer">
-    </div>
-    <div class="question-block">
-      <label for="genderResponse"><strong>What is your gender?</strong></label>
-      <input type="text" id="genderResponse" placeholder="Your answer">
-    </div>
-    <div class="question-block">
-      <label for="countryResponse"><strong>What is your country of residence?</strong></label>
-      <input type="text" id="countryResponse" placeholder="Your answer">
-    </div>
-    <button class="btn btn-primary" id="demographicsSubmitBtn">Submit responses</button>
-  </div>
   <div id="languagePrompt" class="hidden">
-    <p>Please answer a few language background questions:</p>
+    <p>Please answer one final language background question:</p>
     <div class="question-block">
-      <p><strong>Do you consider yourself to be bilingual in English and French?</strong></p>
+      <p><strong>Are you fluently bilingual in French?</strong></p>
       <div class="radio-group" id="bilingualGroup">
         <label><input type="radio" name="bilingualResponse" value="Yes"> Yes</label>
         <label><input type="radio" name="bilingualResponse" value="No"> No</label>
-        <label><input type="radio" name="bilingualResponse" value="Somewhat"> Somewhat</label>
       </div>
-    </div>
-    <div class="question-block">
-      <label for="frenchUseRange"><strong>What percentage of your week do you spend using French?</strong></label>
-      <div class="scale-row">
-        <span>0</span>
-        <input type="range" id="frenchUseRange" min="0" max="100" step="1" value="0">
-        <span class="scale-value" id="frenchUseValue">0</span>
-        <span>100</span>
-      </div>
-    </div>
-    <div class="question-block">
-      <label for="englishUseRange"><strong>What percentage of your week do you spend using English?</strong></label>
-      <div class="scale-row">
-        <span>0</span>
-        <input type="range" id="englishUseRange" min="0" max="100" step="1" value="0">
-        <span class="scale-value" id="englishUseValue">0</span>
-        <span>100</span>
-      </div>
-    </div>
-    <div class="question-block">
-      <label for="otherLanguagesResponse"><strong>What other language do you speak? Please list them, and indicate the percentage you use them per week.</strong></label>
-      <input type="text" id="otherLanguagesResponse" placeholder="Your answer">
     </div>
     <button class="btn btn-primary" id="languageSubmitBtn">Submit responses</button>
-  </div>
-  <div id="completionPrompt" class="hidden">
-    <p><strong>Your participation code:</strong> <code id="completionCode">CJUVEL1D</code></p>
-    <p>
-      Please click the link below to complete your submission on Prolific:
-    </p>
-    <p>
-      <a id="prolificReturnLink" href="https://app.prolific.com/submissions/complete?cc=CJUVEL1D" target="_blank" style="font-size:16px; color:#007acc; text-decoration:underline;">
-        ➤ Click here to return to Prolific and submit your study
-      </a>
-    </p>
   </div>
 </div>
 
@@ -236,8 +174,8 @@ const CONFIG = {
     "sane_b.wav", "seller_b.wav", "tin_b.wav", "tint_t_b.wav", "whinny_b.wav"
   ],
   attentionEveryNTrials: 24,
-  completionCode: "CJY9T9NA",
-  prolificReturnUrl: "https://app.prolific.com/submissions/complete?cc=CJY9T9NA",
+  primeMinDisplayMs: 695,
+  wordPrimeDisplayMs: 629,
 };
 
 /** Trials: Loaded from CSV
@@ -266,16 +204,8 @@ const State = {
   awaitingChoice: false,
   attnQueue: [],
   attnAnswers: [],
-  demographics: {
-    age: "",
-    gender: "",
-    country: "",
-  },
   languageBackground: {
-    bilingual: "",
-    frenchUse: "",
-    englishUse: "",
-    otherLanguages: "",
+    bilingualFrench: "",
   },
   rowsLocal: [],            // optional local copy
 };
@@ -293,6 +223,19 @@ function normalizeLanguage(value){
   if(normalized === "fr" || normalized === "french") return "french";
   if(normalized === "en" || normalized === "english") return "english";
   return normalized;
+}
+
+function normalizeResponseLabel(value){
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if(normalized === "word") return "word";
+  if(normalized === "nonword") return "nonword";
+  if(normalized === "yes") return "yes";
+  if(normalized === "no") return "no";
+  return normalized;
+}
+
+function randomChoice(values){
+  return values[Math.floor(Math.random() * values.length)];
 }
 
 function sendToGoogleSheet(obj){
@@ -352,9 +295,18 @@ function parseCSV(text){
   const primeModalityIdx = findColumn(["Prime Modality", "PrimeModality", "prime_modality", "PrimeType"]);
   const trialTypeIdx = findColumn(["Trial Type", "TrialType", "trial_type"]);
   const targetLanguageIdx = findColumn(["Target Language", "TargetLanguage", "target_language"]);
+  const englishTargetIdx = findColumn(["english_target"]);
+  const nonwordTargetIdx = findColumn(["nonword_target"]);
+  const relatedPrimeEnglishIdx = findColumn(["related_prime_english"]);
+  const unrelatedPrimeEnglishIdx = findColumn(["unrelated_prime_english"]);
+  const relatedPrimeFrenchIdx = findColumn(["related_prime_french"]);
+  const unrelatedPrimeFrenchIdx = findColumn(["unrelated_prime_french"]);
 
-  if(primeIdx === -1 || targetIdx === -1 || primeModalityIdx === -1 || trialTypeIdx === -1 || targetLanguageIdx === -1){
-    console.error("CSV missing required columns. Need Prime, Target, Prime Modality, Trial Type, Target Language.");
+  const hasLegacyColumns = primeIdx !== -1 && targetIdx !== -1 && primeModalityIdx !== -1 && trialTypeIdx !== -1 && targetLanguageIdx !== -1;
+  const hasLexicalDecisionColumns = englishTargetIdx !== -1 && nonwordTargetIdx !== -1 && relatedPrimeEnglishIdx !== -1 && unrelatedPrimeEnglishIdx !== -1 && relatedPrimeFrenchIdx !== -1 && unrelatedPrimeFrenchIdx !== -1;
+
+  if(!hasLegacyColumns && !hasLexicalDecisionColumns){
+    console.error("CSV missing required columns for either the legacy or lexical-decision formats.");
     return [];
   }
   
@@ -365,38 +317,82 @@ function parseCSV(text){
     if(!line) continue; // skip empty lines
     
     const cells = line.split(',').map(c => c.trim());
-    const primeText = cells[primeIdx] || "";
-    const targetWord = cells[targetIdx] || "";
-    const primeType = ((cells[primeModalityIdx] || "word").toLowerCase() === "audio") ? "audio" : "word";
-    const trialType = (cells[trialTypeIdx] || "").toLowerCase();
-    const targetLanguage = normalizeLanguage(cells[targetLanguageIdx] || "");
-    const correctResponse = targetLanguage;
+    if(hasLegacyColumns){
+      const primeText = cells[primeIdx] || "";
+      const targetWord = cells[targetIdx] || "";
+      const primeType = ((cells[primeModalityIdx] || "word").toLowerCase() === "audio") ? "audio" : "word";
+      const trialType = (cells[trialTypeIdx] || "").toLowerCase();
+      const targetLanguage = normalizeLanguage(cells[targetLanguageIdx] || "");
+      const correctResponse = normalizeResponseLabel(targetLanguage);
 
-    if(!primeText || !targetWord) continue;
+      if(!primeText || !targetWord) continue;
 
-    const primeAudioFile = `${primeText}.wav`;
-    
-    // Capture all other columns as custom data
+      const primeAudioFile = `${primeText}.wav`;
+      
+      // Capture all other columns as custom data
+      const customData = {};
+      for(let j = 0; j < headers.length; j++){
+        if(j !== trialIdIdx && j !== primeIdx && j !== targetIdx && j !== primeModalityIdx && j !== trialTypeIdx && j !== targetLanguageIdx){
+          customData[headers[j]] = cells[j] || '';
+        }
+      }
+      
+      trials.push({
+        trial_id: trialIdIdx !== -1 ? (cells[trialIdIdx] || i) : i,
+        prime_type: primeType,
+        prime_text: primeText,
+        prime_audio_file: primeAudioFile,
+        target_word: targetWord,
+        trial_type: trialType,
+        correct_response: correctResponse,
+        target_language: targetLanguage,
+        ...customData,
+      });
+      continue;
+    }
+
     const customData = {};
     for(let j = 0; j < headers.length; j++){
-      if(j !== trialIdIdx && j !== primeIdx && j !== targetIdx && j !== primeModalityIdx && j !== trialTypeIdx && j !== targetLanguageIdx){
+      if(j !== trialIdIdx && j !== englishTargetIdx && j !== nonwordTargetIdx && j !== relatedPrimeEnglishIdx && j !== unrelatedPrimeEnglishIdx && j !== relatedPrimeFrenchIdx && j !== unrelatedPrimeFrenchIdx){
         customData[headers[j]] = cells[j] || '';
       }
     }
-    
-    const trial = {
-      trial_id: trialIdIdx !== -1 ? (cells[trialIdIdx] || i) : i,
-      prime_type: primeType,
-      prime_text: primeText,
-      prime_audio_file: primeAudioFile,
-      target_word: targetWord,
-      trial_type: trialType,
-      correct_response: correctResponse,
-      target_language: targetLanguage,
-      ...customData  // Spread custom columns into trial object
-    };
-    
-    trials.push(trial);
+
+    const trialBaseId = trialIdIdx !== -1 ? (cells[trialIdIdx] || i) : i;
+    const targetSpecs = [
+      { target_word: cells[englishTargetIdx] || "", correct_response: "word", target_label: "english_target" },
+      { target_word: cells[nonwordTargetIdx] || "", correct_response: "nonword", target_label: "nonword_target" },
+    ];
+    const primeSpecs = [
+      { prime_key: "related_prime_english", prime_text: cells[relatedPrimeEnglishIdx] || "" },
+      { prime_key: "unrelated_prime_english", prime_text: cells[unrelatedPrimeEnglishIdx] || "" },
+      { prime_key: "related_prime_french", prime_text: cells[relatedPrimeFrenchIdx] || "" },
+      { prime_key: "unrelated_prime_french", prime_text: cells[unrelatedPrimeFrenchIdx] || "" },
+    ];
+
+    for(const targetSpec of targetSpecs){
+      if(!targetSpec.target_word) continue;
+
+      for(const primeSpec of primeSpecs){
+        if(!primeSpec.prime_text) continue;
+
+        const primeType = randomChoice(["word", "audio"]);
+        trials.push({
+          trial_id: `${trialBaseId}_${targetSpec.target_label}_${primeSpec.prime_key}_${primeType}`,
+          source_row_id: trialBaseId,
+          prime_type: primeType,
+          prime_text: primeSpec.prime_text,
+          prime_audio_file: `${primeSpec.prime_text}.wav`,
+          target_word: targetSpec.target_word,
+          target_label: targetSpec.target_label,
+          prime_key: primeSpec.prime_key,
+          trial_type: targetSpec.correct_response,
+          correct_response: targetSpec.correct_response,
+          target_language: targetSpec.correct_response,
+          ...customData,
+        });
+      }
+    }
   }
   
   return trials;
@@ -425,31 +421,25 @@ async function loadTrialsFromCSV(){
 }
 
 /* ===========================
-  CONSENT
+  SPLASH
 =========================== */
-const consentCheck = document.getElementById('consentCheck');
-const consentBtn = document.getElementById('consentBtn');
+const splashBtn = document.getElementById('splashBtn');
 
-function updateConsentContinue(){
-  consentBtn.disabled = !consentCheck.checked;
-}
-consentCheck.onchange = updateConsentContinue;
-
-consentBtn.onclick = () => {
+splashBtn.onclick = () => {
   State.participantId = generateParticipantId();
 
   // Load trials from CSV before proceeding
-  consentBtn.disabled = true;
-  consentBtn.textContent = "Loading trials...";
+  splashBtn.disabled = true;
+  splashBtn.textContent = "Loading trials...";
 
   loadTrialsFromCSV().then(success => {
     if(success){
-      hide("screen-consent");
+      hide("screen-splash");
       prepareAttentionQueue();
       showAudioAttentionCheck(() => showInstructions());
     }
-    consentBtn.disabled = false;
-    consentBtn.textContent = "Continue";
+    splashBtn.disabled = false;
+    splashBtn.textContent = "Continue";
   });
 };
 
@@ -546,11 +536,9 @@ const trialTitle  = document.getElementById("trialTitle");
 const primeDisplay = document.getElementById("primeDisplay");
 const player      = document.getElementById("player");
 const responseChoices = document.getElementById("responseChoices");
-const leftBtn     = document.getElementById("leftBtn");
-const rightBtn    = document.getElementById("rightBtn");
 let trialRenderToken = 0;
-let currentLeftResponse = "french";
-let currentRightResponse = "english";
+let currentLeftResponse = "word";
+let currentRightResponse = "nonword";
 
 function startTrials(){
   // optional: shuffle TRIALS once per participant
@@ -562,8 +550,7 @@ function startTrials(){
 }
 
 function setChoiceEnabled(enabled){
-  leftBtn.disabled = !enabled;
-  rightBtn.disabled = !enabled;
+  responseChoices.style.pointerEvents = "none";
 }
 
 function setChoiceVisible(visible){
@@ -572,12 +559,8 @@ function setChoiceVisible(visible){
 }
 
 function updateResponseMappingForTrial(){
-  const blockIndex = Math.floor(State.trialIndex / CONFIG.attentionEveryNTrials);
-  const swapped = (blockIndex % 2) === 1;
-  currentLeftResponse = swapped ? "english" : "french";
-  currentRightResponse = swapped ? "french" : "english";
-  leftBtn.textContent = currentLeftResponse === "french" ? "French" : "English";
-  rightBtn.textContent = currentRightResponse === "french" ? "French" : "English";
+  currentLeftResponse = "word";
+  currentRightResponse = "nonword";
 }
 
 function updateProgress(){
@@ -613,6 +596,7 @@ async function runTimedTrialSequence(trial, token){
   await sleep(600);
   if(token !== trialRenderToken) return;
 
+  const primeStart = nowMs();
   if(trial.prime_type === "audio"){
     primeDisplay.textContent = "🔊";
     try {
@@ -624,9 +608,13 @@ async function runTimedTrialSequence(trial, token){
       alert("Unable to play prime audio. Please check browser permissions.");
       return;
     }
+    const elapsedMs = nowMs() - primeStart;
+    if(elapsedMs < CONFIG.primeMinDisplayMs){
+      await sleep(CONFIG.primeMinDisplayMs - elapsedMs);
+    }
   } else {
     primeDisplay.textContent = trial.prime_text;
-    await sleep(100);
+    await sleep(CONFIG.wordPrimeDisplayMs);
   }
   if(token !== trialRenderToken) return;
 
@@ -713,9 +701,6 @@ function recordChoice(choiceSide){
   }
 }
 
-leftBtn.onclick  = () => recordChoice("left");
-rightBtn.onclick = () => recordChoice("right");
-
 // Keyboard shortcuts (F/J for left/right choice)
 document.addEventListener("keydown", (e) => {
   if(screenTrials.classList.contains("hidden")) return;
@@ -730,92 +715,25 @@ document.addEventListener("keydown", (e) => {
 =========================== */
 function finishStudy(){
   hide("screen-trials");
-
-  document.getElementById("demographicsPrompt").classList.remove("hidden");
-  document.getElementById("languagePrompt").classList.add("hidden");
-  document.getElementById("completionPrompt").classList.add("hidden");
-
-  const demographicsSubmitBtn = document.getElementById("demographicsSubmitBtn");
-  const ageInput = document.getElementById("ageResponse");
-  const genderInput = document.getElementById("genderResponse");
-  const countryInput = document.getElementById("countryResponse");
-
-  ageInput.value = "";
-  genderInput.value = "";
-  countryInput.value = "";
-
-  demographicsSubmitBtn.onclick = () => {
-    const age = ageInput.value.trim();
-    const gender = genderInput.value.trim();
-    const country = countryInput.value.trim();
-
-    if(!age || !gender || !country){
-      alert("Please answer all three demographic questions before submitting.");
-      return;
-    }
-
-    State.demographics = { age, gender, country };
-
-    document.getElementById("demographicsPrompt").classList.add("hidden");
-    document.getElementById("languagePrompt").classList.remove("hidden");
-  };
-
-  const frenchUseRange = document.getElementById("frenchUseRange");
-  const englishUseRange = document.getElementById("englishUseRange");
-  const frenchUseValue = document.getElementById("frenchUseValue");
-  const englishUseValue = document.getElementById("englishUseValue");
   const languageSubmitBtn = document.getElementById("languageSubmitBtn");
-  const otherLanguagesInput = document.getElementById("otherLanguagesResponse");
-
-  frenchUseRange.value = "0";
-  englishUseRange.value = "0";
-  frenchUseValue.textContent = "0";
-  englishUseValue.textContent = "0";
-  otherLanguagesInput.value = "";
-
-  const updateScaleValues = () => {
-    frenchUseValue.textContent = frenchUseRange.value;
-    englishUseValue.textContent = englishUseRange.value;
-  };
-
-  frenchUseRange.oninput = updateScaleValues;
-  englishUseRange.oninput = updateScaleValues;
 
   languageSubmitBtn.onclick = () => {
     const bilingualChoice = document.querySelector('input[name="bilingualResponse"]:checked');
-    const frenchUse = frenchUseRange.value;
-    const englishUse = englishUseRange.value;
-    const otherLanguages = otherLanguagesInput.value.trim();
 
     if(!bilingualChoice){
       alert("Please answer the bilingual question before submitting.");
       return;
     }
 
-    if(otherLanguages.length === 0){
-      alert("Please list any other languages you speak before submitting.");
-      return;
-    }
-
     State.languageBackground = {
-      bilingual: bilingualChoice.value,
-      frenchUse,
-      englishUse,
-      otherLanguages,
+      bilingualFrench: bilingualChoice.value,
     };
 
     const out = {
       participant_id: State.participantId,
       block: "Final",
       headphone_type: State.headphoneType || "",
-      completion_code: CONFIG.completionCode,
-      age: age,
-      gender: gender,
-      country_of_residence: country,
-      bilingual_english_french: bilingualChoice.value,
-      french_use_percent: frenchUse,
-      english_use_percent: englishUse,
-      other_languages: otherLanguages,
+      bilingual_french: bilingualChoice.value,
       timestamp_iso: new Date().toISOString(),
     };
     for(let i=0;i<State.attnAnswers.length;i++){
@@ -823,20 +741,13 @@ function finishStudy(){
     }
     sendToGoogleSheet(out);
 
-    document.getElementById("demographicsPrompt").classList.add("hidden");
     document.getElementById("languagePrompt").classList.add("hidden");
-    document.getElementById("completionPrompt").classList.remove("hidden");
     show("screen-finish");
   };
 
+  document.getElementById("languagePrompt").classList.remove("hidden");
   show("screen-finish");
 }
-
-/* ===========================
-   FINISH SCREEN LINKS
-=========================== */
-document.getElementById("completionCode").textContent = CONFIG.completionCode;
-document.getElementById("prolificReturnLink").href = CONFIG.prolificReturnUrl;
 </script>
 
 </body>
